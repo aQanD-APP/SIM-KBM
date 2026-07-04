@@ -339,7 +339,7 @@ export default function App() {
       if (!data) {
         const { data: newProfile, error: createError } = await supabase
           .from('profiles')
-          .insert([{ id: userId, role: 'ustaz', is_active: true }])
+          .insert([{ id: userId, nama_lengkap: 'User', role: 'ustaz', is_active: true }])
           .select()
           .maybeSingle();
 

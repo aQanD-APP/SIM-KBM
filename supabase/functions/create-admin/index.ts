@@ -52,7 +52,16 @@ Deno.serve(async (req: Request) => {
 
     // Parse request body
     const body = await req.json();
-    const { email, password, nama_lengkap, role = "admin", setup_key } = body;
+    const {
+      email,
+      password,
+      nama_lengkap,
+      nama_panggilan,
+      nomor_whatsapp,
+      role = "ustaz",
+      id_login,
+      setup_key
+    } = body;
 
     // Verify setup key (simple security measure)
     const validSetupKey = Deno.env.get("SETUP_KEY") || "simkbm-setup-2024";
@@ -69,7 +78,7 @@ Deno.serve(async (req: Request) => {
     // Validate input
     if (!email || !password) {
       return new Response(
-        JSON.stringify({ error: "Email and password are required" }),
+        JSON.stringify({ error: "Email dan password wajib diisi" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -79,7 +88,7 @@ Deno.serve(async (req: Request) => {
 
     if (password.length < 6) {
       return new Response(
-        JSON.stringify({ error: "Password must be at least 6 characters" }),
+        JSON.stringify({ error: "Password minimal 6 karakter" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -144,6 +153,9 @@ Deno.serve(async (req: Request) => {
       .from("profiles")
       .update({
         nama_lengkap: nama_lengkap || email.split("@")[0],
+        nama_panggilan: nama_panggilan || null,
+        nomor_whatsapp: nomor_whatsapp || null,
+        id_login: id_login || email.split("@")[0],
         role: role,
         is_active: true,
       })
@@ -157,11 +169,12 @@ Deno.serve(async (req: Request) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Admin user created successfully",
+        message: "User berhasil dibuat",
         user: {
           id: userData.user.id,
           email: userData.user.email,
           role: role,
+          nama_lengkap: nama_lengkap || email.split("@")[0],
         },
       }),
       {

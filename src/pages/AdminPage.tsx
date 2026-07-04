@@ -19,6 +19,7 @@ type MasterTab = 'users' | 'tahun' | 'semester' | 'kelas' | 'mapel' | 'ruangan';
 type AkademikTab = 'siswa' | 'ustaz';
 
 const PAGE_SIZE = 8;
+const SUPABASE_URL = 'https://intkcrhsinezswldmokr.supabase.co';
 
 export default function AdminPage({
   showToast,
@@ -48,7 +49,15 @@ export default function AdminPage({
   const [ruanganList, setRuanganList] = useState<Ruangan[]>([]);
 
   // Form states
-  const [userForm, setUserForm] = useState({ nama_lengkap: '', nama_panggilan: '', nomor_whatsapp: '', role: 'ustaz' as UserRole, is_active: true });
+  const [userForm, setUserForm] = useState({
+    nama_lengkap: '',
+    nama_panggilan: '',
+    nomor_whatsapp: '',
+    role: 'ustaz' as UserRole,
+    is_active: true,
+    id_login: '',
+    password: ''
+  });
   const [tahunForm, setTahunForm] = useState({ nama: '', aktif: false });
   const [semesterForm, setSemesterForm] = useState({ nama: '', aktif: false });
   const [kelasForm, setKelasForm] = useState({ nama_kelas: '', tingkat: '1', kode: '' });
@@ -93,7 +102,15 @@ export default function AdminPage({
   // ========== GENERIC HANDLERS ==========
   const openAdd = () => {
     setEditingId(null);
-    if (masterTab === 'users') setUserForm({ nama_lengkap: '', nama_panggilan: '', nomor_whatsapp: '', role: 'ustaz', is_active: true });
+    if (masterTab === 'users') setUserForm({
+      nama_lengkap: '',
+      nama_panggilan: '',
+      nomor_whatsapp: '',
+      role: 'ustaz',
+      is_active: true,
+      id_login: '',
+      password: ''
+    });
     if (masterTab === 'tahun') setTahunForm({ nama: '', aktif: false });
     if (masterTab === 'semester') setSemesterForm({ nama: '', aktif: false });
     if (masterTab === 'kelas') setKelasForm({ nama_kelas: '', tingkat: '1', kode: '' });
@@ -118,9 +135,42 @@ export default function AdminPage({
           if (error) throw error;
           showToast('User diperbarui!', 'success');
         } else {
-          showToast('Untuk membuat user baru, gunakan Admin API', 'info');
-          setSaving(false);
-          return;
+          // Create new user via edge function
+          if (!userForm.id_login || !userForm.password) {
+            showToast('ID Login dan Password wajib diisi untuk user baru', 'error');
+            setSaving(false);
+            return;
+          }
+          if (userForm.password.length < 6) {
+            showToast('Password minimal 6 karakter', 'error');
+            setSaving(false);
+            return;
+          }
+
+          const email = `${userForm.id_login.toLowerCase().replace(/[^a-z0-9]/g, '')}@madrasah.local`;
+
+          const response = await fetch(`${SUPABASE_URL}/functions/v1/create-admin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email,
+              password: userForm.password,
+              nama_lengkap: userForm.nama_lengkap || userForm.id_login,
+              nama_panggilan: userForm.nama_panggilan,
+              nomor_whatsapp: userForm.nomor_whatsapp,
+              role: userForm.role,
+              id_login: userForm.id_login.toLowerCase().replace(/[^a-z0-9]/g, ''),
+              setup_key: 'simkbm-setup-2024',
+            }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || 'Gagal membuat user');
+          }
+
+          showToast('User berhasil dibuat!', 'success');
         }
       } else if (masterTab === 'tahun') {
         const { error } = editingId
@@ -194,6 +244,8 @@ export default function AdminPage({
         nomor_whatsapp: item.nomor_whatsapp || '',
         role: (item.role || 'ustaz') as UserRole,
         is_active: item.is_active ?? true,
+        id_login: item.id_login || '',
+        password: '',
       });
     } else if (masterTab === 'tahun') {
       setTahunForm({ nama: item.nama, aktif: item.aktif || false });
@@ -273,8 +325,15 @@ export default function AdminPage({
     if (masterTab === 'users') {
       return (
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!editingId && (
+            <div className="bg-emerald-50 rounded-xl p-3 mb-2">
+              <p className="text-xs text-emerald-700">
+                <strong>Info:</strong> ID Login digunakan untuk login. Password minimal 6 karakter.
+              </p>
+            </div>
+          )}
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nama Lengkap</label>
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nama Lengkap *</label>
             <input type="text" value={userForm.nama_lengkap} onChange={e => setUserForm(p => ({ ...p, nama_lengkap: e.target.value }))} className="input-field text-sm" placeholder="Nama lengkap" required />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -287,6 +346,18 @@ export default function AdminPage({
               <input type="text" value={userForm.nomor_whatsapp} onChange={e => setUserForm(p => ({ ...p, nomor_whatsapp: e.target.value }))} className="input-field text-sm" placeholder="08xxx" />
             </div>
           </div>
+          {!editingId && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">ID Login *</label>
+                <input type="text" value={userForm.id_login} onChange={e => setUserForm(p => ({ ...p, id_login: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') }))} className="input-field text-sm" placeholder="contoh: ustaz1" required />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Password *</label>
+                <input type="password" value={userForm.password} onChange={e => setUserForm(p => ({ ...p, password: e.target.value }))} className="input-field text-sm" placeholder="Min 6 karakter" required minLength={6} />
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Role</label>
