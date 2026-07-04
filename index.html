@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/icon/16x16.png" sizes="16x16" />
+    <link rel="icon" type="image/png" href="/icon/48x48.png" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/icon/192x192.png" />
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#059669" />
+    <meta name="description" content="SIM KBM Ustaz V2.0 - Sistem Informasi Manajemen Kegiatan Belajar Mengajar Madrasah" />
+    <title>SIM KBM Ustaz</title>
+
+    <link rel="manifest" href="/manifest.json" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="SIM KBM" />
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <meta property="og:title" content="SIM KBM Ustaz" />
+    <meta property="og:description" content="Sistem Informasi Manajemen Kegiatan Belajar Mengajar Madrasah" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://bolt.new/static/og_default.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://bolt.new/static/og_default.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Unregister ALL service workers - disable SW temporarily
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          registrations.forEach(registration => {
+            console.log('[INIT] Unregistering SW:', registration.scope);
+            registration.unregister();
+          });
+        }).catch(err => console.error('[INIT] SW error:', err));
+      }
+
+      // Clear old cache storage
+      if ('caches' in window) {
+        caches.keys().then(cacheNames => {
+          cacheNames.forEach(cacheName => {
+            console.log('[INIT] Deleting cache:', cacheName);
+            caches.delete(cacheName);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

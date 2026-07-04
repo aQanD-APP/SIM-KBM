@@ -1,0 +1,39 @@
+{
+  "name": "SIM KBM Ustaz",
+  "short_name": "SIM KBM",
+  "description": "Sistem Informasi Manajemen Kegiatan Belajar Mengajar Madrasah",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#059669",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon/192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon/512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Jadwal",
+      "url": "/?tab=jadwal",
+      "icons": [{ "src": "/icon/192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Absensi",
+      "url": "/?tab=absensi",
+      "icons": [{ "src": "/icon/192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}
